@@ -21,4 +21,20 @@ public class OOPTestSummary {
             this.stats[result]++;
         });
     }
+
+    public int getNumSuccesses() {
+        return this.stats[OOPTestResult.SUCCESS];
+    }
+
+    public int getNumFailures() {
+        return this.stats[OOPTestResult.FAILURE];
+    }
+
+    public int getNumErrors() {
+        return this.stats[OOPTestResult.ERROR];
+    }
+
+    public int getNumExceptionMismatches() {
+        return this.stats[OOPTestResult.EXPECTED_EXCEPTION_MISMATCH];
+    }
 }
