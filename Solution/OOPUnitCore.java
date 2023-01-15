@@ -1,14 +1,13 @@
 package Solution.OOP;
+
 import OOP.Provided.OOPAssertionFailure;
+
 class OOPUnitCore {
-    private OOPUnitCore() {}
+    private OOPUnitCore() {
+    }
 
     public void assertEquals(Object expected, Object actual) throws OOPAssertionFailure {
-        if (expected == null ){
-            if (actual != null) {
-                throw new OOPAssertionFailure(expected, actual);
-            }
-        } else if (!expected.equals(actual)) {
+        if (expected == null && actual != null || !expected.equals(actual)) {
             throw new OOPAssertionFailure(expected, actual);
         }
     }
@@ -18,14 +17,23 @@ class OOPUnitCore {
     }
 
     private static void backup(Object classInst, ArrayList<Object> backUpList) {
-
+        Class<?> clazz = classInst.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                backUpList.add(field.get(classInst));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void restore(Object classInst, ArrayList<Object> backedUpList) {
 
     }
 
-    public void runClass(Class<?> testClass, String tag = "") throws IllegalArgumentException {
+    public void runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
         }
@@ -41,7 +49,9 @@ class OOPUnitCore {
             ArrayList<Method> allMethods = testClass.getMethods();
             ArrayList<Method> setupMethods = allMethods.stream().reverse()
                     .filter(method -> method.isAnnotationPresent(OOPSetup.class));
-            setupMethods.stream().forEach(method -> {method.invoke(testClassInstance);});
+            setupMethods.stream().forEach(method -> {
+                method.invoke(testClassInstance);
+            });
 
             // test methods
             ArrayList<Method> testMethods = allMethods.stream().reverse()
@@ -58,7 +68,7 @@ class OOPUnitCore {
                 beforeMethods.stream().forEach(beforeMethod -> {
                     ArrayList<Object> fields = new ArrayList<>();
                     backup(testClassInstance, fields);// TODO: backup
-                    try{
+                    try {
                         beforeMethod.invoke(testClassInstance);
                     } catch (Exception e) {
                         //TODO restore and maybe save exception
