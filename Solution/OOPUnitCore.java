@@ -39,6 +39,15 @@ class OOPUnitCore {
         });
     }
 
+    public static void restore(Object classInst, ArrayList<Object> backedUpList) {
+        Class<?> clazz = classInst.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        java.util.Arrays.stream(fields).forEach(field -> {
+            field.setAccessible(true);
+            field.set(classInst, backedUpList.remove(0));
+        });
+    }
+
 
     public static void invokeBeforeMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
         allMethods.stream().filter(method -> method.isAnnotationPresent(Before.class)).forEach(method -> {
