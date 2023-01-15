@@ -1,16 +1,14 @@
 package OOP.Solution;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
-
 import OOP.Provided.OOPAssertionFailure;
-import OOP.Provided.OOPExceptionMismatchError;
 import OOP.Provided.OOPExpectedException;
 import OOP.Provided.OOPResult;
-import OOP.Provided.OOPResult.OOPTestResult;
+
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
 
 public class OOPUnitCore {
     private OOPUnitCore() {
@@ -35,11 +33,31 @@ public class OOPUnitCore {
                 field.setAccessible(true);
                 Object value = field.get(classInst);
                 if (value instanceof Cloneable) {
-                    backedUpList.add(value.getClass().getMethod("clone").invoke(value));
+                    try {
+                        backedUpList.add(value.getClass().getMethod("clone").invoke(value));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 // check if value class has copy constructor
-                else if (value.getClass().getDeclaredConstructor(value.getClass()) != null) {
-                    backedUpList.add(value.getClass().getDeclaredConstructor(value.getClass()).newInstance(value));
+                else {
+                    try {
+                        if (value.getClass().getDeclaredConstructor(value.getClass()) != null) {
+                            backedUpList.add(value.getClass().getDeclaredConstructor(value.getClass()).newInstance(value));
+                        }
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
+                    } catch (InstantiationException e) {
+                        throw new RuntimeException(e);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 backedUpList.add(value);
             });
@@ -63,44 +81,55 @@ public class OOPUnitCore {
 
 
     public static void invokeBeforeMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
-        allMethods.stream().filter(method -> method.isAnnotationPresent(Before.class)).forEach(method -> {
+        allMethods.stream().filter(method -> method.isAnnotationPresent(OOPBefore.class)).forEach(method -> {
+            ArrayList<Object> fields = new ArrayList<>();
             try {
-                ArrayList<Object> fields = new ArrayList<>();
                 backup(testClassInstance, fields);
                 method.invoke(testClassInstance);
             } catch (Exception e) {
                 restore(testClassInstance, fields);
-                throw e;
+                try {
+                    throw e;
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                } catch (InvocationTargetException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
     }
 
     public static void invokeAfterMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
-        allMethods.stream().filter(method -> method.isAnnotationPresent(After.class)).forEach(method -> {
+        allMethods.stream().filter(method -> method.isAnnotationPresent(OOPAfter.class)).forEach(method -> {
+            ArrayList<Object> fields = new ArrayList<>();
             try {
-                ArrayList<Object> fields = new ArrayList<>();
                 backup(testClassInstance, fields);
                 method.invoke(testClassInstance);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
                 restore(testClassInstance, fields);
-                throw e;
+                try {
+                    throw e;
+                } catch (IllegalAccessException ex) {
+                    throw new RuntimeException(ex);
+                } catch (InvocationTargetException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
     }
 
-    public static OOPTestSummary runClass(Class<?> testClass) throws IllegalArgumentException {
+    public static <OOPEXpectedException> OOPTestSummary runClass(Class<?> testClass) throws IllegalArgumentException {
         return runClass(testClass, "");
     }
 
-
-    public static OOPTestSummary runClass(Class<?> testClass, String tag) throws IllegalArgumentException {
+    public static <OOPEXpectedException> OOPTestSummary runClass(Class<?> testClass, String tag) throws IllegalArgumentException {
         // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
         }
 
         // Create a new summary
-        Map<String, OOPResult> summary = new TreeMap<>();
+        Map<String, OOPResult> summary = new TreeMap<>(String, OOPResult);
 
 
         //create a new instance of the test class
@@ -114,50 +143,54 @@ public class OOPUnitCore {
             e.printStackTrace();
         }
         // invoke setup methods
-        ArrayList<Method> allMethods = testClass.getMethods();
-        ArrayList<Method> setupMethods = allMethods.stream().reverse()
-                .filter(method -> method.isAnnotationPresent(OOPSetup.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
-        setupMethods.stream().forEach(method -> {
-            method.invoke(testClassInstance);
+        ArrayList<Method> allMethods = new ArrayList<Method>(List.of(testClass.getMethods()));
+        ArrayList<Method> setupMethods = allMethods;
+        Collections.reverse(setupMethods);
+        Object finalTestClassInstance = testClassInstance;
+        setupMethods.stream().filter(method -> method.isAnnotationPresent(OOPSetup.class)).forEach(method -> {
+            method.invoke(finalTestClassInstance);
         });
 
         // get test methods
-        ArrayList<Method> testMethods = allMethods.stream().reverse()
-                .filter(method -> method.isAnnotationPresent(OOPTest.class) && (tag == "" || method.getAnnotation(OOPTest.class).tag().equals(tag)));
+        ArrayList<Method> testMethods = allMethods;
+        Collections.reverse(testMethods);
+        testMethods.stream().filter(method -> method.isAnnotationPresent(OOPTest.class) && (tag.equals("") || method.getAnnotation(OOPTest.class).tag().equals(tag)));
 
         if (testClass.getAnnotation(OOPTestClass.class).value() == OOPTestClass.OOPTestClassType.ORDERED) {
-            testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order()));
+            testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order())).collect(Collectors.toCollection(ArrayList::new));
         }
 
+        Object finalTestClassInstance1 = testClassInstance;
+        Object finalTestClassInstance2 = testClassInstance;
         testMethods.forEach(method -> {
             try {
-                OOPEXpectedException expectedException;
+                AtomicReference<OOPEXpectedException> expectedException;
                 testClass.getDeclaredFields().stream()
                         .filter(field -> field.isAnnotationPresent(OOPExpectedException.class))
                         .forEach(field -> {
                             field.setAccessible(true);
-                            expectedException = field.get(testClassInstance);
+                            expectedException = field.get(finalTestClassInstance1);
                         });
                 // invoke before methods
-                invokeBeforeMethods(allMethods, testClassInstance, method);
+                invokeBeforeMethods(allMethods, finalTestClassInstance2, method);
 
                 ArrayList<Object> fields = new ArrayList<>();
-                backup(testClassInstance, fields);
+                backup(finalTestClassInstance2, fields);
                 // invoke test method
                 try {
-                    method.invoke(testClassInstance);
+                    method.invoke(finalTestClassInstance2);
                 } catch (Exception e) {
-                    restore(testClassInstance, fields);
+                    restore(finalTestClassInstance2, fields);
                     throw e;
                 }
 
-                if (expectedException != null && expectedException.getExpectedException() != null) {
+                if (expectedException.get() != null && expectedException.getExpectedException() != null) {
                     summary.put(method.getName(), new OOPResultImpl(OOPTestResult.ERROR, expectedException.getClass().getName()));
                 } else {
-                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.PASSED, null));
+                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.SUCCESS, null));
                 }
                 // invoke after methods
-                invokeAfterMethods(allMethods, testClassInstance, method);
+                invokeAfterMethods(allMethods, finalTestClassInstance2, method);
 
             } catch (IllegalAccessException | InvocationTargetException e) {
                 // add to summary
@@ -171,7 +204,9 @@ public class OOPUnitCore {
                     }
                 }
             }
-            return OOPTestSummary(summary);
+
         });
+        return OOPTestSummary(summary);
     }
+
 }
