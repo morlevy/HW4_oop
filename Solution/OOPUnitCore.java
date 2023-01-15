@@ -46,6 +46,28 @@ class OOPUnitCore {
         }
     }
 
+    public static void invokeBeforeMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
+        allMethods.stream().filter(method -> method.isAnnotationPresent(Before.class)).forEach(method -> {
+            try {
+                ArrayList<Object> fields = new ArrayList<>();
+                backup(testClassInstance, fields);
+                method.invoke(testClassInstance);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                restore(testClassInstance, fields);
+            }
+        });
+    }
+
+    public static void invokeAfterMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
+        allMethods.stream().filter(method -> method.isAnnotationPresent(After.class)).forEach(method -> {
+            try {
+                method.invoke(testClassInstance);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                // TODO: something
+            }
+        });
+    }
+
     public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
         // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
@@ -66,12 +88,12 @@ class OOPUnitCore {
             // invoke setup methods
             ArrayList<Method> allMethods = testClass.getMethods();
             ArrayList<Method> setupMethods = allMethods.stream().reverse()
-                    .filter(method -> method.isAnnotationPresent(OOPSetup.class));
+                    .filter(method -> method.isAnnotationPresent(OOPSetup.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
             setupMethods.stream().forEach(method -> {
                 method.invoke(testClassInstance);
             });
 
-            // test methods
+            // get test methods
             ArrayList<Method> testMethods = allMethods.stream().reverse()
                     .filter(method -> method.isAnnotationPresent(OOPTest.class) && (tag == "" || method.getAnnotation(OOPTest.class).tag().equals(tag)));
 
@@ -79,29 +101,16 @@ class OOPUnitCore {
                 testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order()));
             }
 
-            testMethods.forEach(method -> { // for each test method
-                ArrayList<Method> beforeMethods = allMethods.stream()
-                        .filter(beforeMethod -> beforeMethod.isAnnotationPresent(OOPBefore.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
-                beforeMethods.stream().forEach(beforeMethod -> {
-                    ArrayList<Object> fields = new ArrayList<>();
-                    backup(testClassInstance, fields);// TODO: backup
-                    try { // invoke before methods
-                        beforeMethod.invoke(testClassInstance);
-                    } catch (Exception e) {
-                        restore(testClassInstance, fields);
-                        throw e();
-                    }
-                });
+            testMethods.forEach(method -> {
                 try {
+                    method.setAccessible(true);
+                    invokeBeforeMethods(allMethods, testClassInstance, method);
                     method.invoke(testClassInstance);
-                } catch (Exception e) {
-                    restore(testClassInstance, fields);
+                    invokeAfterMethods(allMethods, testClassInstance, method);
+                    summary.put(method.getName(), OOPResult.PASSED);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    summary.put(method.getName(), OOPResult.FAILED);
                 }
             });
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            return OOPTestSummary(summary);
         }
-        return OOPTestSummary(summary);
-    }
