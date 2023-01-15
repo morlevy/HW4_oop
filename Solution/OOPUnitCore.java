@@ -147,12 +147,12 @@ class OOPUnitCore {
             } catch (IllegalAccessException | InvocationTargetException e) {
                 // add to summary
                 if (expectedException && e.getCause().getClass().equals(expectedException)) {
-                    summary.put(method.getName(), new OOPResult(OOPTestResult.EXPECTED_EXCEPTION, e.getCause()));
+                    summary.put(method.getName(), new OOPResult(OOPTestResult.SUCCESS, e.getCause().getMessage()));
                 } else {
                     if (e.getCause().getClass().equals(OOPAssertionFailure.class)) {
                         summary.put(method.getName(), new OOPResult(OOPTestResult.FAILURE, e.getCause().getMessage()));
                     } else {
-                        summary.put(method.getName(), new OOPResult(OOPTestResult.ERROR, e.getCause().getClass().getName()));
+                        summary.put(method.getName(), new OOPResult(OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, e.getCause().getClass().getName()));
                     }
                 }
             }

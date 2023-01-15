@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/OOP4_Provided.iml" filepath="$PROJECT_DIR$/OOP4_Provided.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Solution/Solution.iml" filepath="$PROJECT_DIR$/Solution/Solution.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OOP.iml" filepath="$PROJECT_DIR$/OOP.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Solution/OOP.Solution.iml" filepath="$PROJECT_DIR$/Solution/OOP.Solution.iml" />
     </modules>
   </component>
 </project>

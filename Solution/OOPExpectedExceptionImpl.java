@@ -40,6 +40,6 @@ public class OOPExpectedExceptionImpl implements OOPExpectedException {
     }
 
     public static OOPExpectedException none() {
-        return new OOPExpectedExceptionImpl;
+        return new OOPExpectedExceptionImpl();
     }
 }

@@ -1,40 +1,40 @@
-package Solution.OOP;
+package OOP.Solution;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-import OOP.Provided.OOPResult;
+import OOP.Provided.*;
 
 public class OOPTestSummary {
-    private Map<OOPTestResult, Integer> stats = new TreeMap<OOPTestResult, Integer>() {
+    private Map<OOPResult.OOPTestResult, Integer> stats = new TreeMap<OOPResult.OOPTestResult, Integer>() {
         {
-            put(OOPTestResult.SUCCESS, 0);
-            put(OOPTestResult.FAILURE, 0);
-            put(OOPTestResult.ERROR, 0);
-            put(OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, 0);
+            put(OOPResult.OOPTestResult.SUCCESS, 0);
+            put(OOPResult.OOPTestResult.FAILURE, 0);
+            put(OOPResult.OOPTestResult.ERROR, 0);
+            put(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, 0);
         }
     };
 }
 
     public OOPTestSummary(Map<String, OOPResult> results) {
-        results.forEach((_, result) -> {
-            this.stats[result]++;
+        results.forEach((x, result) -> {
+            this.stats.put(result.getResultType(), this.stats.get(result.getResultType()) + 1);
         });
     }
 
     public int getNumSuccesses() {
-        return this.stats[OOPTestResult.SUCCESS];
+        return this.stats.get(OOPResult.OOPTestResult.SUCCESS);
     }
 
     public int getNumFailures() {
-        return this.stats[OOPTestResult.FAILURE];
+        return this.stats.get(OOPResult.OOPTestResult.FAILURE);
     }
 
     public int getNumErrors() {
-        return this.stats[OOPTestResult.ERROR];
+        return this.stats.get(OOPResult.OOPTestResult.ERROR);
     }
 
     public int getNumExceptionMismatches() {
-        return this.stats[OOPTestResult.EXPECTED_EXCEPTION_MISMATCH];
+        return this.stats.get(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH);
     }
 }
