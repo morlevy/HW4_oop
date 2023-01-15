@@ -21,31 +21,24 @@ class OOPUnitCore {
         throw new OOPAssertionFailure();
     }
 
-    private static void backup(Object classInst, ArrayList<Object> backUpList) {
+
+    private static void backup(Object classInst, ArrayList<Object> backedUpList) {
         Class<?> clazz = classInst.getClass();
         Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
+        java.util.Arrays.stream(fields).forEach(field -> {
             field.setAccessible(true);
-            try {
-                backUpList.add(field.get(classInst));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+            Object value = field.get(classInst);
+            if (value instanceof Cloneable) {
+                backedUpList.add(value.getClass().getMethod("clone").invoke(value));
             }
-        }
+            // check if value class has copy constructor
+            else if (value.getClass().getDeclaredConstructor(value.getClass()) != null) {
+                backedUpList.add(value.getClass().getDeclaredConstructor(value.getClass()).newInstance(value));
+            }
+            backedUpList.add(value);
+        });
     }
 
-    private static void restore(Object classInst, ArrayList<Object> backedUpList) {
-        Class<?> clazz = classInst.getClass();
-        Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                field.set(classInst, backedUpList.remove(0));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     public static void invokeBeforeMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
         allMethods.stream().filter(method -> method.isAnnotationPresent(Before.class)).forEach(method -> {
