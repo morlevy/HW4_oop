@@ -60,6 +60,7 @@ class OOPUnitCore {
                 method.invoke(testClassInstance);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 restore(testClassInstance, fields);
+                throw e;
             }
         });
     }
@@ -72,6 +73,7 @@ class OOPUnitCore {
                 method.invoke(testClassInstance);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 restore(testClassInstance, fields);
+                throw e;
             }
         });
     }
@@ -92,53 +94,67 @@ class OOPUnitCore {
             Constructor<?> constructor = testClass.getConstructor();
             constructor.setAccessible(true);
             testClassInstance = constructor.newInstance();
+        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException |
+                 InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        // invoke setup methods
+        ArrayList<Method> allMethods = testClass.getMethods();
+        ArrayList<Method> setupMethods = allMethods.stream().reverse()
+                .filter(method -> method.isAnnotationPresent(OOPSetup.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
+        setupMethods.stream().forEach(method -> {
+            method.invoke(testClassInstance);
+        });
 
-            // invoke setup methods
-            ArrayList<Method> allMethods = testClass.getMethods();
-            ArrayList<Method> setupMethods = allMethods.stream().reverse()
-                    .filter(method -> method.isAnnotationPresent(OOPSetup.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
-            setupMethods.stream().forEach(method -> {
-                method.invoke(testClassInstance);
-            });
+        // get test methods
+        ArrayList<Method> testMethods = allMethods.stream().reverse()
+                .filter(method -> method.isAnnotationPresent(OOPTest.class) && (tag == "" || method.getAnnotation(OOPTest.class).tag().equals(tag)));
 
-            // get test methods
-            ArrayList<Method> testMethods = allMethods.stream().reverse()
-                    .filter(method -> method.isAnnotationPresent(OOPTest.class) && (tag == "" || method.getAnnotation(OOPTest.class).tag().equals(tag)));
+        if (testClass.getAnnotation(OOPTestClass.class).value() == OOPTestClass.OOPTestClassType.ORDERED) {
+            testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order()));
+        }
 
-            if (testClass.getAnnotation(OOPTestClass.class).value() == OOPTestClass.OOPTestClassType.ORDERED) {
-                testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order()));
-            }
+        testMethods.forEach(method -> {
+            try {
+                OOPEXpectedException expectedException;
+                testClass.getDeclaredFields().stream()
+                        .filter(field -> field.isAnnotationPresent(OOPExpectedException.class))
+                        .forEach(field -> {
+                            field.setAccessible(true);
+                            expectedException = field.get(testClassInstance);
+                        });
+                // invoke before methods
+                invokeBeforeMethods(allMethods, testClassInstance, method);
 
-            testMethods.forEach(method -> {
+                ArrayList<Object> fields = new ArrayList<>();
+                backup(testClassInstance, fields);
+                // invoke test method
                 try {
-                    OOPEXpectedException expectedException;
-                    testClass.getDeclaredFields().stream()
-                            .filter(field -> field.isAnnotationPresent(OOPExpectedException.class))
-                            .forEach(field -> {
-                                field.setAccessible(true);
-                                expectedException = field.get(testClassInstance);
-                            });
-                    // invoke before methods
-                    invokeBeforeMethods(allMethods, testClassInstance, method);
-
-                    // invoke test method
                     method.invoke(testClassInstance);
+                } catch (Exception e) {
+                    restore(testClassInstance, fields);
+                    throw e
+                }
 
-                    if (expectedException != null) {
-                        summary.put(method.getName(), OOPResult.FAILED);
-                    }
-                    // invoke after methods
-                    invokeAfterMethods(allMethods, testClassInstance, method);
+                if (expectedException != null) {
+                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.ERROR, null));
+                } else {
+                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.PASSED, null));
+                }
+                // invoke after methods
+                invokeAfterMethods(allMethods, testClassInstance, method);
 
-                    // add to summary
-                    summary.put(method.getName(), OOPResult.PASSED);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    // add to summary
-                    if (expectedException && e.getCause().getClass().equals(expectedException)) {
-                        summary.put(method.getName(), OOPResult.PASSED);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                // add to summary
+                if (expectedException && e.getCause().getClass().equals(expectedException)) {
+                    summary.put(method.getName(), new OOPResult(OOPTestResult.EXPECTED_EXCEPTION, e.getCause()));
+                } else {
+                    if (e.getCause().getClass().equals(OOPAssertionFailure.class)) {
+                        summary.put(method.getName(), new OOPResult(OOPTestResult.FAILURE, e.getCause().getMessage()));
                     } else {
-                        summary.put(method.getName(), OOPResult.FAILED);
+                        summary.put(method.getName(), new OOPResult(OOPTestResult.ERROR, e.getCause().getClass().getName()));
                     }
                 }
-                return OOPTestSummary(summary);
             }
+            return OOPTestSummary(summary);
+        }
