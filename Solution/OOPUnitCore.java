@@ -71,7 +71,7 @@ class OOPUnitCore {
         });
     }
 
-    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException, InstantiationException, IllegalAccessException {
+    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
         // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
@@ -106,12 +106,12 @@ class OOPUnitCore {
 
             testMethods.forEach(method -> {
                 try {
-                    ArrayList<OOPEXpectedException> expectedExceptions;
+                    OOPEXpectedException expectedException;
                     testClass.getDeclaredFields().stream()
                             .filter(field -> field.isAnnotationPresent(OOPExpectedException.class))
                             .forEach(field -> {
                                 field.setAccessible(true);
-                                expectedExceptions.add(field.get(testClassInstance));
+                                expectedException = field.get(testClassInstance);
                             });
                     // invoke before methods
                     invokeBeforeMethods(allMethods, testClassInstance, method);
@@ -119,23 +119,17 @@ class OOPUnitCore {
                     // invoke test method
                     method.invoke(testClassInstance);
 
+                    if (expectedException != null) {
+                        summary.put(method.getName(), OOPResult.FAILED);
+                    }
                     // invoke after methods
                     invokeAfterMethods(allMethods, testClassInstance, method);
 
                     // add to summary
                     summary.put(method.getName(), OOPResult.PASSED);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    if (e.getCause() instanceof OOPAssertionFailure) {
-                        summary.put(method.getName(), OOPResult.FAILED);
-                    } else if (e.getCause() instanceof OOPExpectedException) {
-                        summary.put(method.getName(), OOPResult.EXPECTED_EXCEPTION);
-                    } else {
-                        summary.put(method.getName(), OOPResult.FAILED);
-                    }
+                    // add to summary
+                    summary.put(method.getName(), OOPResult.FAILED);
                 }
-            } catch(IllegalAccessException | InvocationTargetException e){
-                summary.put(method.getName(), OOPResult.FAILED);
+                return OOPTestSummary(summary);
             }
-        });
-        return OOPTestSummary(summary);
-    }
