@@ -1,5 +1,9 @@
 package Solution.OOP;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
+
 import OOP.Provided.OOPAssertionFailure;
 
 class OOPUnitCore {
@@ -43,9 +47,14 @@ class OOPUnitCore {
     }
 
     public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
+        // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
         }
+
+        // Create a new summary
+        Map<String, OOPResult> summary = new TreeMap<>();
+
 
         //create a new instance of the test class
         Object testClassInstance = null;
@@ -94,4 +103,5 @@ class OOPUnitCore {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return OOPTestSummary(summary);
     }
