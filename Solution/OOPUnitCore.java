@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
+import OOP.Solution.OOPExpectedException;
 import OOP.Provided.OOPAssertionFailure;
 
 class OOPUnitCore {
@@ -61,14 +62,16 @@ class OOPUnitCore {
     public static void invokeAfterMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
         allMethods.stream().filter(method -> method.isAnnotationPresent(After.class)).forEach(method -> {
             try {
+                ArrayList<Object> fields = new ArrayList<>();
+                backup(testClassInstance, fields);
                 method.invoke(testClassInstance);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                // TODO: something
+                restore(testClassInstance, fields);
             }
         });
     }
 
-    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
+    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException, InstantiationException, IllegalAccessException {
         // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
@@ -103,14 +106,36 @@ class OOPUnitCore {
 
             testMethods.forEach(method -> {
                 try {
-                    method.setAccessible(true);
+                    ArrayList<OOPEXpectedException> expectedExceptions;
+                    testClass.getDeclaredFields().stream()
+                            .filter(field -> field.isAnnotationPresent(OOPExpectedException.class))
+                            .forEach(field -> {
+                                field.setAccessible(true);
+                                expectedExceptions.add(field.get(testClassInstance));
+                            });
+                    // invoke before methods
                     invokeBeforeMethods(allMethods, testClassInstance, method);
+
+                    // invoke test method
                     method.invoke(testClassInstance);
+
+                    // invoke after methods
                     invokeAfterMethods(allMethods, testClassInstance, method);
+
+                    // add to summary
                     summary.put(method.getName(), OOPResult.PASSED);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    summary.put(method.getName(), OOPResult.FAILED);
+                    if (e.getCause() instanceof OOPAssertionFailure) {
+                        summary.put(method.getName(), OOPResult.FAILED);
+                    } else if (e.getCause() instanceof OOPExpectedException) {
+                        summary.put(method.getName(), OOPResult.EXPECTED_EXCEPTION);
+                    } else {
+                        summary.put(method.getName(), OOPResult.FAILED);
+                    }
                 }
-            });
-            return OOPTestSummary(summary);
-        }
+            } catch(IllegalAccessException | InvocationTargetException e){
+                summary.put(method.getName(), OOPResult.FAILED);
+            }
+        });
+        return OOPTestSummary(summary);
+    }
