@@ -7,7 +7,7 @@ class OOPUnitCore {
     }
 
     public void assertEquals(Object expected, Object actual) throws OOPAssertionFailure {
-        if (expected == null && actual != null || !expected.equals(actual)) {
+        if ((expected == null && actual != null) || !expected.equals(actual)) {
             throw new OOPAssertionFailure(expected, actual);
         }
     }
