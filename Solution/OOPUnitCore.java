@@ -70,14 +70,13 @@ class OOPUnitCore {
                 testMethods = testMethods.stream().sorted(Comparator.comparingInt(method -> method.getAnnotation(OOPTest.class).order()));
             }
 
-            // invoke before methods
-            testMethods.forEach(method -> {
+            testMethods.forEach(method -> { // for each test method
                 ArrayList<Method> beforeMethods = allMethods.stream()
                         .filter(beforeMethod -> beforeMethod.isAnnotationPresent(OOPBefore.class) && beforeMethod.getAnnotation(OOPBefore.class).value().equals(method.getName()));
                 beforeMethods.stream().forEach(beforeMethod -> {
                     ArrayList<Object> fields = new ArrayList<>();
                     backup(testClassInstance, fields);// TODO: backup
-                    try {
+                    try { // invoke before methods
                         beforeMethod.invoke(testClassInstance);
                     } catch (Exception e) {
                         //TODO restore and maybe save exception
