@@ -42,7 +42,7 @@ class OOPUnitCore {
         }
     }
 
-    public void runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
+    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
         }
@@ -79,8 +79,8 @@ class OOPUnitCore {
                     try { // invoke before methods
                         beforeMethod.invoke(testClassInstance);
                     } catch (Exception e) {
-                        //TODO restore and maybe save exception
                         restore(testClassInstance, fields);
+                        throw e();
                     }
                 });
                 try {
