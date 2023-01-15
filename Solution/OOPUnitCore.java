@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 
-import OOP.Solution.OOPExpectedException;
 import OOP.Provided.OOPAssertionFailure;
+import OOP.Provided.OOPExceptionMismatchError;
+import OOP.Provided.OOPExpectedException;
+import OOP.Provided.OOPResult;
+import OOP.Provided.OOPResult.OOPTestResult;
 
 class OOPUnitCore {
     private OOPUnitCore() {
