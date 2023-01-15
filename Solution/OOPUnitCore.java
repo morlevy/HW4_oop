@@ -30,7 +30,16 @@ class OOPUnitCore {
     }
 
     private static void restore(Object classInst, ArrayList<Object> backedUpList) {
-
+        Class<?> clazz = classInst.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                field.set(classInst, backedUpList.remove(0));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
@@ -75,6 +84,11 @@ class OOPUnitCore {
                         restore(testClassInstance, fields);
                     }
                 });
+                try {
+                    method.invoke(testClassInstance);
+                } catch (Exception e) {
+                    restore(testClassInstance, fields);
+                }
             });
 
 
