@@ -136,8 +136,8 @@ class OOPUnitCore {
                     throw e
                 }
 
-                if (expectedException != null) {
-                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.ERROR, null));
+                if (expectedException != null && expectedException.getExpectedException() != null) {
+                    summary.put(method.getName(), new OOPResultImpl(OOPTestResult.ERROR, expectedException.getClass().getName()));
                 } else {
                     summary.put(method.getName(), new OOPResultImpl(OOPTestResult.PASSED, null));
                 }
