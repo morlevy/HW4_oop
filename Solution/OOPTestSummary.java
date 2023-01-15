@@ -14,7 +14,6 @@ public class OOPTestSummary {
             put(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, 0);
         }
     };
-}
 
     public OOPTestSummary(Map<String, OOPResult> results) {
         results.forEach((x, result) -> {

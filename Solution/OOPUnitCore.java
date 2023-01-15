@@ -1,4 +1,4 @@
-package Solution.OOP;
+package OOP.Solution;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -78,7 +78,12 @@ class OOPUnitCore {
         });
     }
 
-    public static OOPTestSummary runClass(Class<?> testClass, String tag ="") throws IllegalArgumentException {
+    public static OOPTestSummary runClass(Class<?> testClass) throws IllegalArgumentException {
+        return runClass(testClass, "");
+    }
+
+
+    public static OOPTestSummary runClass(Class<?> testClass, String tag) throws IllegalArgumentException {
         // Check if the class is a test class
         if (testClass == null || tag == null || !testClass.isAnnotationPresent(OOPTestClass.class)) {
             throw new IllegalArgumentException();
@@ -133,7 +138,7 @@ class OOPUnitCore {
                     method.invoke(testClassInstance);
                 } catch (Exception e) {
                     restore(testClassInstance, fields);
-                    throw e
+                    throw e;
                 }
 
                 if (expectedException != null && expectedException.getExpectedException() != null) {
@@ -157,4 +162,6 @@ class OOPUnitCore {
                 }
             }
             return OOPTestSummary(summary);
-        }
+        });
+    }
+}
