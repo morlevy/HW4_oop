@@ -129,7 +129,11 @@ class OOPUnitCore {
                     summary.put(method.getName(), OOPResult.PASSED);
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     // add to summary
-                    summary.put(method.getName(), OOPResult.FAILED);
+                    if (expectedException && e.getCause().getClass().equals(expectedException)) {
+                        summary.put(method.getName(), OOPResult.PASSED);
+                    } else {
+                        summary.put(method.getName(), OOPResult.FAILED);
+                    }
                 }
                 return OOPTestSummary(summary);
             }
