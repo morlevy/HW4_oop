@@ -23,13 +23,13 @@ public class OOPExpectedExceptionImpl implements OOPExpectedException {
     }
 
     @Override
-    OOPExpectedException expectMessage(String msg) {
+    public OOPExpectedException expectMessage(String msg) {
         this.expectedMessage = msg;
         return this;
     }
 
     @Override
-    boolean assertExpected(Exception e) {
+    public boolean assertExpected(Exception e) {
         if (e == null && this.expectedException != null || this.expectedException == null) {
             return false;
         }

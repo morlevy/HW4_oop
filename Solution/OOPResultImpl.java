@@ -2,7 +2,7 @@ package OOP.Solution;
 
 import OOP.Provided.OOPResult;
 
-public class OOPResultImpl implements OOPReslt {
+public class OOPResultImpl implements OOPResult {
     private String message;
     private OOPTestResult resultType;
 

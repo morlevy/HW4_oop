@@ -1,5 +1,7 @@
 package OOP.Solution;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
@@ -10,11 +12,11 @@ import OOP.Provided.OOPExpectedException;
 import OOP.Provided.OOPResult;
 import OOP.Provided.OOPResult.OOPTestResult;
 
-class OOPUnitCore {
+public class OOPUnitCore {
     private OOPUnitCore() {
     }
 
-    public void assertEquals(Object expected, Object actual) throws OOPAssertionFailure {
+    public static void assertEquals(Object expected, Object actual) throws OOPAssertionFailure {
         if ((expected == null && actual != null) || !expected.equals(actual)) {
             throw new OOPAssertionFailure(expected, actual);
         }
@@ -28,18 +30,22 @@ class OOPUnitCore {
     private static void backup(Object classInst, ArrayList<Object> backedUpList) {
         Class<?> clazz = classInst.getClass();
         Field[] fields = clazz.getDeclaredFields();
-        java.util.Arrays.stream(fields).forEach(field -> {
-            field.setAccessible(true);
-            Object value = field.get(classInst);
-            if (value instanceof Cloneable) {
-                backedUpList.add(value.getClass().getMethod("clone").invoke(value));
-            }
-            // check if value class has copy constructor
-            else if (value.getClass().getDeclaredConstructor(value.getClass()) != null) {
-                backedUpList.add(value.getClass().getDeclaredConstructor(value.getClass()).newInstance(value));
-            }
-            backedUpList.add(value);
-        });
+        try {
+            java.util.Arrays.stream(fields).forEach(field -> {
+                field.setAccessible(true);
+                Object value = field.get(classInst);
+                if (value instanceof Cloneable) {
+                    backedUpList.add(value.getClass().getMethod("clone").invoke(value));
+                }
+                // check if value class has copy constructor
+                else if (value.getClass().getDeclaredConstructor(value.getClass()) != null) {
+                    backedUpList.add(value.getClass().getDeclaredConstructor(value.getClass()).newInstance(value));
+                }
+                backedUpList.add(value);
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void restore(Object classInst, ArrayList<Object> backedUpList) {
@@ -47,7 +53,11 @@ class OOPUnitCore {
         Field[] fields = clazz.getDeclaredFields();
         java.util.Arrays.stream(fields).forEach(field -> {
             field.setAccessible(true);
-            field.set(classInst, backedUpList.remove(0));
+            try {
+                field.set(classInst, backedUpList.remove(0));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 
@@ -58,7 +68,7 @@ class OOPUnitCore {
                 ArrayList<Object> fields = new ArrayList<>();
                 backup(testClassInstance, fields);
                 method.invoke(testClassInstance);
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
                 restore(testClassInstance, fields);
                 throw e;
             }
