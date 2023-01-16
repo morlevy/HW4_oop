@@ -127,7 +127,10 @@ public class OOPUnitCore {
     public static ArrayList<Method> getAllMethods(Class<?> clazz) {
         ArrayList<Method> allMethods = new ArrayList<>();
         while (clazz != null) {
-            allMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+            allMethods.addAll(Arrays.stream(clazz.getDeclaredMethods())
+                    .filter(method -> allMethods.stream().noneMatch(m -> m.getName().equals(method.getName())))
+                    .collect(Collectors.toList()));
+
             clazz = clazz.getSuperclass();
         }
         return allMethods;
