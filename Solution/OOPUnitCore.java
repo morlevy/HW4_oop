@@ -110,6 +110,7 @@ public class OOPUnitCore {
             ArrayList<Object> fields = new ArrayList<>();
             try {
                 backup(testClassInstance, fields);
+                method.setAccessible(true);
                 method.invoke(testClassInstance);
             } catch (Exception e) {
                 restore(testClassInstance, fields);
@@ -146,12 +147,13 @@ public class OOPUnitCore {
             e.printStackTrace();
         }
         // invoke setup methods
-        ArrayList<Method> allMethods = new ArrayList<Method>(List.of(testClass.getMethods()));
+        ArrayList<Method> allMethods = new ArrayList<Method>(List.of(testClass.getDeclaredMethods()));
         ArrayList<Method> setupMethods = allMethods;
         Collections.reverse(setupMethods);
         Object finalTestClassInstance = testClassInstance;
         setupMethods.stream().filter(method -> method.isAnnotationPresent(OOPSetup.class)).forEach(method -> {
             try {
+                method.setAccessible(true);
                 method.invoke(finalTestClassInstance);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
