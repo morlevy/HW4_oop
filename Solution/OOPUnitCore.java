@@ -37,6 +37,7 @@ public class OOPUnitCore {
                 }
                 if (value instanceof Cloneable) {
                     try {
+                        value.getClass().getMethod("clone").setAccessible(true);
                         backedUpList.add(value.getClass().getMethod("clone").invoke(value));
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         throw new RuntimeException(e);
@@ -90,14 +91,13 @@ public class OOPUnitCore {
                         method.setAccessible(true);
                         method.invoke(testClassInstance);
                     } catch (Exception e) {
-                        restore(testClassInstance, fields);
                         try {
+                            restore(testClassInstance, fields);
                             throw e;
-                        } catch (IllegalAccessException ex) {
-                            throw new RuntimeException(ex);
-                        } catch (InvocationTargetException ex) {
+                        } catch (Exception ex) {
                             throw new RuntimeException(ex);
                         }
+
                     }
                 });
     }
