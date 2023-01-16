@@ -39,6 +39,7 @@ public class OOPExpectedExceptionImpl implements OOPExpectedException {
         return false;
     }
 
+
     public static OOPExpectedException none() {
         return new OOPExpectedExceptionImpl();
     }

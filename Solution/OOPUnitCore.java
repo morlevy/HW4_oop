@@ -193,7 +193,7 @@ public class OOPUnitCore {
                     throw e;
                 }
 
-                OOPExpectedException expectedException = (OOPExpectedException) expectedExceptions[0];
+                OOPExpectedExceptionImpl expectedException = (OOPExpectedExceptionImpl) expectedExceptions[0];
                 if (expectedException != null && expectedException.getExpectedException() != null) {
                     summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, expectedException.getClass().getName()));
                 } else {
