@@ -124,6 +124,15 @@ public class OOPUnitCore {
         });
     }
 
+    public static ArrayList<Method> getAllMethods(Class<?> clazz) {
+        ArrayList<Method> allMethods = new ArrayList<>();
+        while (clazz != null) {
+            allMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+            clazz = clazz.getSuperclass();
+        }
+        return allMethods;
+    }
+
     public static <OOPExpectedException> OOPTestSummary runClass(Class<?> testClass) throws IllegalArgumentException {
         return runClass(testClass, "");
     }
@@ -148,7 +157,12 @@ public class OOPUnitCore {
             e.printStackTrace();
         }
         // invoke setup methods
-        ArrayList<Method> allMethods = new ArrayList<Method>(List.of(testClass.getDeclaredMethods()));
+        ArrayList<Method> allMethods = getAllMethods(testClass);
+        Arrays.stream(testClass.getMethods()).forEach(method -> {
+            if (!allMethods.contains(method)) {
+                allMethods.add(method);
+            }
+        });
         ArrayList<Method> setupMethods = allMethods;
         Collections.reverse(setupMethods);
         Object finalTestClassInstance = testClassInstance;
