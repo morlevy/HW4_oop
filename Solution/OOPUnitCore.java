@@ -87,6 +87,7 @@ public class OOPUnitCore {
                     ArrayList<Object> fields = new ArrayList<>();
                     try {
                         backup(testClassInstance, fields);
+                        method.setAccessible(true);
                         method.invoke(testClassInstance);
                     } catch (Exception e) {
                         restore(testClassInstance, fields);
