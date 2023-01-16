@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
-
 public class OOPUnitCore {
     private OOPUnitCore() {
     }
@@ -85,27 +84,29 @@ public class OOPUnitCore {
         allMethods.stream().filter(method -> method.isAnnotationPresent(OOPBefore.class) &&
                         Arrays.stream(method.getAnnotation(OOPBefore.class).value()).anyMatch(testMethod.getName()::equals))
                 .forEach(method -> {
-            ArrayList<Object> fields = new ArrayList<>();
-            try {
-                backup(testClassInstance, fields);
-                method.invoke(testClassInstance);
-            } catch (Exception e) {
-                restore(testClassInstance, fields);
-                try {
-                    throw e;
-                } catch (IllegalAccessException ex) {
-                    throw new RuntimeException(ex);
-                } catch (InvocationTargetException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
+                    ArrayList<Object> fields = new ArrayList<>();
+                    try {
+                        backup(testClassInstance, fields);
+                        method.invoke(testClassInstance);
+                    } catch (Exception e) {
+                        restore(testClassInstance, fields);
+                        try {
+                            throw e;
+                        } catch (IllegalAccessException ex) {
+                            throw new RuntimeException(ex);
+                        } catch (InvocationTargetException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
     }
 
     public static void invokeAfterMethods(ArrayList<Method> allMethods, Object testClassInstance, Method testMethod) {
         ArrayList<Method> afterMethods = new ArrayList<>(allMethods);
         Collections.reverse(afterMethods);
-        afterMethods.stream().filter(method -> method.isAnnotationPresent(OOPAfter.class)).forEach(method -> {
+        afterMethods.stream().filter(method -> method.isAnnotationPresent(OOPAfter.class)
+                && Arrays.stream(method.getAnnotation(OOPBefore.class).value()).anyMatch(testMethod.getName()::equals)
+        ).forEach(method -> {
             ArrayList<Object> fields = new ArrayList<>();
             try {
                 backup(testClassInstance, fields);
