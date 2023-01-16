@@ -6,45 +6,46 @@ import java.util.TreeMap;
 import OOP.Provided.*;
 
 public class OOPTestSummary {
-    private int successesCount = 0;
-    private int failuresCount = 0;
-    private int exceptionMismatchesCount = 0;
-    private int errorsCount = 0;
+    private Map<String, OOPResult> results;
+    private int SuccessCount;
+    private int FailureCount;
+    private int ErrorCount;
+    private int ExceptionMismatchCount;
 
-    public OOPTestSummary(Map<String, OOPResult> testMap) {
-        testMap.forEach(
-                (key, value) -> {
-                    switch (value.getResultType()) {
-                        case SUCCESS:
-                            successesCount++;
-                            break;
-                        case FAILURE:
-                            failuresCount++;
-                            break;
-                        case EXPECTED_EXCEPTION_MISMATCH:
-                            exceptionMismatchesCount++;
-                            break;
-                        case ERROR:
-                            errorsCount++;
-                            break;
-                    }
-                }
-        );
+
+    public OOPTestSummary(Map<String, OOPResult> results) {
+        this.results = results;
+        results.forEach((x, result) -> {
+            switch (result.getResultType()) {
+                case SUCCESS:
+                    SuccessCount++;
+                    break;
+                case FAILURE:
+                    FailureCount++;
+                    break;
+                case ERROR:
+                    ErrorCount++;
+                    break;
+                case EXPECTED_EXCEPTION_MISMATCH:
+                    ExceptionMismatchCount++;
+                    break;
+            }
+        });
     }
 
     public int getNumSuccesses() {
-        return successesCount;
+        return SuccessCount;
     }
 
     public int getNumFailures() {
-        return failuresCount;
+        return FailureCount;
     }
 
     public int getNumErrors() {
-        return errorsCount;
+        return ErrorCount;
     }
 
     public int getNumExceptionMismatches() {
-        return exceptionMismatchesCount;
+        return ExceptionMismatchCount;
     }
 }

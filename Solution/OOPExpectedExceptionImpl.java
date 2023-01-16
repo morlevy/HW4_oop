@@ -1,6 +1,7 @@
 package OOP.Solution;
 
 import OOP.Provided.OOPExpectedException;
+import org.junit.rules.ExpectedException;
 
 public class OOPExpectedExceptionImpl implements OOPExpectedException {
     private Class<? extends Exception> expectedException;
