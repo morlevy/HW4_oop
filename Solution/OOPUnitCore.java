@@ -192,27 +192,33 @@ public class OOPUnitCore {
                     throw e;
                 }
 
-                OOPExpectedException expectedException = (OOPExpectedException) expectedExceptions[0];
+                OOPExpectedExceptionImpl expectedException = (OOPExpectedExceptionImpl) expectedExceptions[0];
                 if (expectedException != null && expectedException.getExpectedException() != null) {
-                    summary.put(method.getName(), new OOPResult(OOPResult.OOPTestResult.ERROR, expectedException.getClass().getName()));
+                    summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, expectedException.getClass().getName()));
                 } else {
-                    summary.put(method.getName(), new OOPResult(OOPResult.OOPTestResult.SUCCESS, null));
+                    summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, null));
                 }
                 // invoke after methods
                 invokeAfterMethods(allMethods, finalTestClassInstance2, method);
 
             } catch (Exception e) {
                 // add to summary
-                OOPExpectedException expectedException = (OOPExpectedException) expectedExceptions[0];
-                if (expectedException != null && expectedException.assertExpected((Exception) e.getCause())) {
-                    summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, e.getCause().getMessage()));
-                } else {
+                OOPExpectedExceptionImpl expectedException = (OOPExpectedExceptionImpl) expectedExceptions[0];
+                if (expectedException == null || expectedException.getExpectedException() == null) {
                     if (e.getCause().getClass().equals(OOPAssertionFailure.class)) {
                         summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.FAILURE, e.getCause().getMessage()));
                     } else {
-                        summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, e.getCause().getClass().getName()));
+                        summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getCause().getMessage()));
                     }
                 }
+                else {
+                    if (e.getCause().getClass().equals(expectedException.getExpectedException())) {
+                        summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, null));
+                    } else {
+                        summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, e.getCause().getMessage()));
+                    }
+                }
+
             }
 
         });
