@@ -6,15 +6,7 @@ import java.util.TreeMap;
 import OOP.Provided.*;
 
 public class OOPTestSummary {
-    private Map<OOPResult.OOPTestResult, Integer> stats = new TreeMap<OOPResult.OOPTestResult, Integer>() {
-        {/*
-            put(OOPResult.OOPTestResult.SUCCESS, 0);
-            put(OOPResult.OOPTestResult.FAILURE, 0);
-            put(OOPResult.OOPTestResult.ERROR, 0);
-            put(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, 0);
-            */
-        }
-    };
+    private Map<OOPResult.OOPTestResult, Integer> stats = new TreeMap<OOPResult.OOPTestResult, Integer>();
 
     public OOPTestSummary(Map<String, OOPResult> results) {
         results.forEach((x, result) -> {
