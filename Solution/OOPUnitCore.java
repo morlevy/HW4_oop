@@ -188,24 +188,24 @@ public class OOPUnitCore {
                 // invoke test method
                 try {
                     method.invoke(finalTestClassInstance2);
-                } catch (Exception e) {
+                } catch (InvocationTargetException e) {
                     restore(finalTestClassInstance2, fields);
                     throw e;
                 }
 
-                OOPExpectedExceptionImpl expectedException = (OOPExpectedExceptionImpl) expectedExceptions[0];
+                OOPExpectedException expectedException = (OOPExpectedException) expectedExceptions[0];
                 if (expectedException != null && expectedException.getExpectedException() != null) {
-                    summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, expectedException.getClass().getName()));
+                    summary.put(method.getName(), new OOPResult(OOPResult.OOPTestResult.ERROR, expectedException.getClass().getName()));
                 } else {
-                    summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, null));
+                    summary.put(method.getName(), new OOPResult(OOPResult.OOPTestResult.SUCCESS, null));
                 }
                 // invoke after methods
                 invokeAfterMethods(allMethods, finalTestClassInstance2, method);
 
-            } catch (IllegalAccessException | InvocationTargetException e) {
+            } catch (Exception e) {
                 // add to summary
                 OOPExpectedException expectedException = (OOPExpectedException) expectedExceptions[0];
-                if (expectedException != null && e.getCause().getClass().equals(expectedException)) {
+                if (expectedException != null && expectedException.assertExpected((Exception) e.getCause())) {
                     summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, e.getCause().getMessage()));
                 } else {
                     if (e.getCause().getClass().equals(OOPAssertionFailure.class)) {
