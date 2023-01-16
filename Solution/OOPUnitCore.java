@@ -198,8 +198,10 @@ public class OOPUnitCore {
 
                 // invoke before methods
                 Collections.reverse(allMethods);
-                invokeBeforeMethods(allMethods, finalTestClassInstance2, method, summary);
-
+                boolean success = invokeBeforeMethods(allMethods, finalTestClassInstance2, method, summary);
+                if (!success) {
+                    return;
+                }
                 ArrayList<Object> fields = new ArrayList<>();
                 //backup(finalTestClassInstance2, fields);
                 // invoke test method
@@ -288,7 +290,10 @@ public class OOPUnitCore {
                 }
             }
             // invoke after methods
-            invokeAfterMethods(allMethods, finalTestClassInstance2, method, summary);
+            boolean sucess =invokeAfterMethods(allMethods, finalTestClassInstance2, method, summary);
+            if (!sucess) {
+                return;
+            }
         });
         return new OOPTestSummary(summary);
     }
