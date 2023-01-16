@@ -105,7 +105,7 @@ public class OOPUnitCore {
         ArrayList<Method> afterMethods = new ArrayList<>(allMethods);
         Collections.reverse(afterMethods);
         afterMethods.stream().filter(method -> method.isAnnotationPresent(OOPAfter.class)
-                && Arrays.stream(method.getAnnotation(OOPBefore.class).value()).anyMatch(testMethod.getName()::equals)
+                && Arrays.stream(method.getAnnotation(OOPAfter.class).value()).anyMatch(testMethod.getName()::equals)
         ).forEach(method -> {
             ArrayList<Object> fields = new ArrayList<>();
             try {
@@ -226,8 +226,7 @@ public class OOPUnitCore {
                 } else {
                     summary.put(method.getName(), new OOPResultImpl(OOPResult.OOPTestResult.SUCCESS, null));
                 }
-                // invoke after methods
-                invokeAfterMethods(allMethods, finalTestClassInstance2, method);
+
 
             } catch (InvocationTargetException e) {
                 if (e.getCause().getClass().equals(OOPAssertionFailure.class)) {
@@ -266,7 +265,8 @@ public class OOPUnitCore {
                     }
                 }
             }
-
+            // invoke after methods
+            invokeAfterMethods(allMethods, finalTestClassInstance2, method);
         });
         return new OOPTestSummary(summary);
     }
