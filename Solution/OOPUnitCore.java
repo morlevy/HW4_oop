@@ -131,11 +131,10 @@ public class OOPUnitCore {
         //create a new instance of the test class
         Object testClassInstance = null;
         try {
-            Constructor<?> constructor = testClass.getConstructor();
+            Constructor<?> constructor = testClass.getDeclaredConstructors()[0];
             constructor.setAccessible(true);
             testClassInstance = constructor.newInstance();
-        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException |
-                 InvocationTargetException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         // invoke setup methods
