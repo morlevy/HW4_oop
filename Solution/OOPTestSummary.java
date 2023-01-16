@@ -19,18 +19,30 @@ public class OOPTestSummary {
     }
 
     public int getNumSuccesses() {
-        return this.stats.get(OOPResult.OOPTestResult.SUCCESS);
+        if (stats.containsKey(OOPResult.OOPTestResult.SUCCESS)) {
+            return stats.get(OOPResult.OOPTestResult.SUCCESS);
+        }
+        return 0;
     }
 
     public int getNumFailures() {
-        return this.stats.get(OOPResult.OOPTestResult.FAILURE);
+        if (stats.containsKey(OOPResult.OOPTestResult.FAILURE)) {
+            return stats.get(OOPResult.OOPTestResult.FAILURE);
+        }
+        return 0;
     }
 
     public int getNumErrors() {
-        return this.stats.get(OOPResult.OOPTestResult.ERROR);
+        if (stats.containsKey(OOPResult.OOPTestResult.ERROR)) {
+            return stats.get(OOPResult.OOPTestResult.ERROR);
+        }
+        return 0;
     }
 
     public int getNumExceptionMismatches() {
-        return this.stats.get(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH);
+        if (stats.containsKey(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH)) {
+            return stats.get(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH);
+        }
+        return 0;
     }
 }
