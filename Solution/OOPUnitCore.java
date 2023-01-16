@@ -158,11 +158,6 @@ public class OOPUnitCore {
         }
         // invoke setup methods
         ArrayList<Method> allMethods = getAllMethods(testClass);
-        Arrays.stream(testClass.getMethods()).forEach(method -> {
-            if (!allMethods.contains(method)) {
-                allMethods.add(method);
-            }
-        });
         ArrayList<Method> setupMethods = allMethods;
         Collections.reverse(setupMethods);
         Object finalTestClassInstance = testClassInstance;
