@@ -100,7 +100,11 @@ public class OOPUnitCore {
                     } catch (Exception e) {
 
                         restore(testClassInstance, fields);
-                        summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getClass().getName()));
+                        if (e instanceof InvocationTargetException) {
+                            summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getCause().getClass().getName()));
+                        } else {
+                            summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getClass().getName()));
+                        }
                         success[0] = false;
                     }
                 });
@@ -122,7 +126,12 @@ public class OOPUnitCore {
                 method.invoke(testClassInstance);
             } catch (Exception e) {
                 restore(testClassInstance, fields);
-                summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getClass().getName()));
+                if (e instanceof InvocationTargetException) {
+                    summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getCause().getClass().getName()));
+                } else {
+                    summary.put(testMethod.getName(), new OOPResultImpl(OOPResult.OOPTestResult.ERROR, e.getClass().getName()));
+                }
+
                 success[0] = false;
             }
         });
@@ -290,7 +299,7 @@ public class OOPUnitCore {
                 }
             }
             // invoke after methods
-            boolean sucess =invokeAfterMethods(allMethods, finalTestClassInstance2, method, summary);
+            boolean sucess = invokeAfterMethods(allMethods, finalTestClassInstance2, method, summary);
             if (!sucess) {
                 return;
             }
