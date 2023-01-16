@@ -19,7 +19,7 @@ public class OOPUnitCore {
         }
     }
 
-    public void fail() throws OOPAssertionFailure {
+    public static void fail() throws OOPAssertionFailure {
         throw new OOPAssertionFailure();
     }
 
