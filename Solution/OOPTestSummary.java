@@ -7,17 +7,22 @@ import OOP.Provided.*;
 
 public class OOPTestSummary {
     private Map<OOPResult.OOPTestResult, Integer> stats = new TreeMap<OOPResult.OOPTestResult, Integer>() {
-        {
+        {/*
             put(OOPResult.OOPTestResult.SUCCESS, 0);
             put(OOPResult.OOPTestResult.FAILURE, 0);
             put(OOPResult.OOPTestResult.ERROR, 0);
             put(OOPResult.OOPTestResult.EXPECTED_EXCEPTION_MISMATCH, 0);
+            */
         }
     };
 
     public OOPTestSummary(Map<String, OOPResult> results) {
         results.forEach((x, result) -> {
-            this.stats.put(result.getResultType(), this.stats.get(result.getResultType()) + 1);
+            if (stats.containsKey(result.getResultType())) {
+                stats.put(result.getResultType(), stats.get(result.getResultType()) + 1);
+            } else {
+                stats.put(result.getResultType(), 1);
+            }
         });
     }
 
